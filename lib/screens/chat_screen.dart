@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
+import 'package:flutter_markdown/flutter_markdown.dart';
 import '../providers/chat_provider.dart';
 import '../models/philosopher.dart';
 
@@ -59,9 +60,11 @@ class _ChatScreenState extends State<ChatScreen> {
             _lastWords = result.recognizedWords;
           });
         },
-        listenMode: stt.ListenMode.confirmation,
-        cancelOnError: true,
-        partialResults: true,
+        listenOptions: stt.SpeechListenOptions(
+          listenMode: stt.ListenMode.confirmation,
+          cancelOnError: true,
+          partialResults: true,
+        ),
       );
     }
   }
@@ -110,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
@@ -158,21 +161,43 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           // Response box at bottom
           Positioned(
-            bottom: 0,
+            bottom: 24,
             left: 0,
             right: 0,
             child: Consumer<ChatProvider>(
               builder: (context, provider, child) {
-                if (provider.currentAnswer == null) {
-                  return _buildInputArea(context);
-                }
                 return Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    AnimatedResponse(
-                      text: provider.currentAnswer!.content,
-                    ),
-                    const SizedBox(height: 16),
+                    if (_isListening && _lastWords.isNotEmpty)
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withAlpha(179),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withAlpha(26),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          _lastWords,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            height: 1.6,
+                            letterSpacing: 0.3,
+                            fontWeight: FontWeight.w300,
+                          ),
+                        ),
+                      ),
+                    if (provider.currentAnswer != null)
+                      AnimatedResponse(
+                        text: provider.currentAnswer!.content,
+                      ),
+                    if (provider.currentAnswer != null)
+                      const SizedBox(height: 16),
                     _buildInputArea(context),
                   ],
                 );
@@ -471,14 +496,24 @@ class _AnimatedResponseState extends State<AnimatedResponse>
               width: 1,
             ),
           ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              height: 1.6,
-              letterSpacing: 0.3,
-              fontWeight: FontWeight.w300,
+          child: MarkdownBody(
+            data: widget.text,
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                height: 1.6,
+                letterSpacing: 0.3,
+                fontWeight: FontWeight.w300,
+              ),
+              strong: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
+              em: const TextStyle(
+                color: Colors.white,
+                fontStyle: FontStyle.italic,
+              ),
             ),
           ),
         ),
