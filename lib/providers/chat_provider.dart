@@ -20,7 +20,8 @@ class ChatProvider with ChangeNotifier {
 
   OpenAIService _openAIService;
 
-  ChatProvider() : _openAIService = OpenAIService(philosopher: Philosopher.philosophers[0]);
+  ChatProvider()
+    : _openAIService = OpenAIService(philosopher: Philosopher.philosophers[0]);
 
   void selectPhilosopher(Philosopher philosopher) {
     _selectedPhilosopher = philosopher;
@@ -45,10 +46,7 @@ class ChatProvider with ChangeNotifier {
   Future<void> sendMessage(String content) async {
     if (content.trim().isEmpty) return;
 
-    _currentQuestion = Message(
-      content: content,
-      role: MessageRole.user,
-    );
+    _currentQuestion = Message(content: content, role: MessageRole.user);
     _isLoading = true;
     _error = null;
     _currentStreamingResponse = '';
@@ -56,22 +54,16 @@ class ChatProvider with ChangeNotifier {
 
     try {
       // Create a temporary message for the streaming response
-      _currentAnswer = Message(
-        content: '',
-        role: MessageRole.assistant,
-      );
+      _currentAnswer = Message(content: '', role: MessageRole.assistant);
 
       // Stream the response
-      await for (final chunk in _openAIService.sendMessageStream(
-        content,
-        [
-          Message(
-            role: MessageRole.system,
-            content: _selectedPhilosopher.systemPrompt,
-          ),
-          _currentQuestion!,
-        ],
-      )) {
+      await for (final chunk in _openAIService.sendMessageStream(content, [
+        Message(
+          role: MessageRole.system,
+          content: _selectedPhilosopher.systemPrompt,
+        ),
+        _currentQuestion!,
+      ])) {
         _currentStreamingResponse += chunk;
         _currentAnswer!.content = _currentStreamingResponse;
         notifyListeners();
@@ -93,4 +85,4 @@ class ChatProvider with ChangeNotifier {
     _openAIService.dispose();
     super.dispose();
   }
-} 
+}

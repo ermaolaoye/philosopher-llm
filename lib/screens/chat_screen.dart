@@ -78,133 +78,147 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A),
-      body: Stack(
-        children: [
-          // Background with philosopher image
-          Consumer<ChatProvider>(
-            builder: (context, provider, child) {
-              return Center(
-                child: Container(
-                  width: 400,
-                  height: 400,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    image: DecorationImage(
-                      image: AssetImage(provider.selectedPhilosopher.imagePath),
-                      fit: BoxFit.cover,
+    return GestureDetector(
+      onTap: () {
+        // Close keyboard when tapping outside of text input
+        FocusScope.of(context).unfocus();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0A0A0A),
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          bottom:
+              false, // Don't apply safe area at bottom to keep layout consistent
+          child: Stack(
+            children: [
+              // Background with philosopher image
+              Consumer<ChatProvider>(
+                builder: (context, provider, child) {
+                  return Center(
+                    child: Container(
+                      width: 400,
+                      height: 400,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        image: DecorationImage(
+                          image: AssetImage(
+                            provider.selectedPhilosopher.imagePath,
+                          ),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(128),
+                            blurRadius: 30,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(128),
-                        blurRadius: 30,
-                        spreadRadius: 10,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-          // Top bar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withAlpha(204),
-                    Colors.transparent,
-                  ],
-                ),
+                  );
+                },
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Consumer<ChatProvider>(
-                    builder: (context, provider, child) {
-                      return Text(
-                        provider.selectedPhilosopher.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w300,
-                          letterSpacing: 1,
-                        ),
-                      );
-                    },
+              // Top bar
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: Container(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.black.withAlpha(204), Colors.transparent],
+                    ),
                   ),
-                  Row(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildIconButton(
-                        icon: Icons.refresh,
-                        onPressed: () => context.read<ChatProvider>().resetChat(),
-                        tooltip: 'Reset Chat',
+                      Consumer<ChatProvider>(
+                        builder: (context, provider, child) {
+                          return Text(
+                            provider.selectedPhilosopher.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.w300,
+                              letterSpacing: 1,
+                            ),
+                          );
+                        },
                       ),
-                      const SizedBox(width: 16),
-                      _buildIconButton(
-                        icon: Icons.person,
-                        onPressed: () => _showPhilosopherSelection(context),
-                        tooltip: 'Select Philosopher',
+                      Row(
+                        children: [
+                          _buildIconButton(
+                            icon: Icons.refresh,
+                            onPressed:
+                                () => context.read<ChatProvider>().resetChat(),
+                            tooltip: 'Reset Chat',
+                          ),
+                          const SizedBox(width: 16),
+                          _buildIconButton(
+                            icon: Icons.person,
+                            onPressed: () => _showPhilosopherSelection(context),
+                            tooltip: 'Select Philosopher',
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          // Response box at bottom
-          Positioned(
-            bottom: 24,
-            left: 0,
-            right: 0,
-            child: Consumer<ChatProvider>(
-              builder: (context, provider, child) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_isListening && _lastWords.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(179),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withAlpha(26),
-                            width: 1,
+              // Response box at bottom
+              Positioned(
+                bottom:
+                    MediaQuery.of(context).padding.bottom > 0
+                        ? 24 + MediaQuery.of(context).padding.bottom
+                        : 24,
+                left: 0,
+                right: 0,
+                child: Consumer<ChatProvider>(
+                  builder: (context, provider, child) {
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (_isListening && _lastWords.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withAlpha(179),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withAlpha(26),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              _lastWords,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                height: 1.6,
+                                letterSpacing: 0.3,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          _lastWords,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            height: 1.6,
-                            letterSpacing: 0.3,
-                            fontWeight: FontWeight.w300,
+                        if (provider.currentAnswer != null)
+                          AnimatedResponse(
+                            text: provider.currentAnswer!.content,
                           ),
-                        ),
-                      ),
-                    if (provider.currentAnswer != null)
-                      AnimatedResponse(
-                        text: provider.currentAnswer!.content,
-                      ),
-                    if (provider.currentAnswer != null)
-                      const SizedBox(height: 16),
-                    _buildInputArea(context),
-                  ],
-                );
-              },
-            ),
+                        if (provider.currentAnswer != null)
+                          const SizedBox(height: 16),
+                        _buildInputArea(context),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -224,10 +238,7 @@ class _ChatScreenState extends State<ChatScreen> {
         onPressed: onPressed,
         tooltip: tooltip,
         padding: const EdgeInsets.all(8),
-        constraints: const BoxConstraints(
-          minWidth: 40,
-          minHeight: 40,
-        ),
+        constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
       ),
     );
   }
@@ -239,39 +250,39 @@ class _ChatScreenState extends State<ChatScreen> {
       decoration: BoxDecoration(
         color: Colors.white.withAlpha(13),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.white.withAlpha(26),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withAlpha(26), width: 1),
       ),
       child: Row(
         children: [
           Container(
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: _isListening 
-                ? Colors.red.withAlpha(51) 
-                : _speechEnabled 
-                  ? Colors.white.withAlpha(31) 
-                  : Colors.white.withAlpha(13),
+              color:
+                  _isListening
+                      ? Colors.red.withAlpha(51)
+                      : _speechEnabled
+                      ? Colors.white.withAlpha(31)
+                      : Colors.white.withAlpha(13),
               borderRadius: BorderRadius.circular(12),
             ),
             child: IconButton(
               padding: const EdgeInsets.all(8),
-              onPressed: _speechEnabled 
-                ? (_isListening ? _stopListening : _startListening)
-                : null,
+              onPressed:
+                  _speechEnabled
+                      ? (_isListening ? _stopListening : _startListening)
+                      : null,
               icon: Icon(
-                _isListening 
-                  ? Icons.mic 
-                  : _speechEnabled 
-                    ? Icons.mic_none 
+                _isListening
+                    ? Icons.mic
+                    : _speechEnabled
+                    ? Icons.mic_none
                     : Icons.mic_off,
-                color: _isListening 
-                  ? Colors.red 
-                  : _speechEnabled 
-                    ? Colors.white70 
-                    : Colors.white30,
+                color:
+                    _isListening
+                        ? Colors.red
+                        : _speechEnabled
+                        ? Colors.white70
+                        : Colors.white30,
                 size: 20,
               ),
             ),
@@ -313,34 +324,39 @@ class _ChatScreenState extends State<ChatScreen> {
               return Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: provider.isLoading ? Colors.white.withAlpha(24) : Colors.white.withAlpha(13),
+                  color:
+                      provider.isLoading
+                          ? Colors.white.withAlpha(24)
+                          : Colors.white.withAlpha(13),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
                   padding: const EdgeInsets.all(8),
-                  onPressed: provider.isLoading
-                      ? null
-                      : () {
-                          final text = textController.text;
-                          if (text.trim().isNotEmpty) {
-                            provider.sendMessage(text);
-                            textController.clear();
-                          }
-                        },
-                  icon: provider.isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
+                  onPressed:
+                      provider.isLoading
+                          ? null
+                          : () {
+                            final text = textController.text;
+                            if (text.trim().isNotEmpty) {
+                              provider.sendMessage(text);
+                              textController.clear();
+                            }
+                          },
+                  icon:
+                      provider.isLoading
+                          ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                          : const Icon(
+                            Icons.send_rounded,
                             color: Colors.white,
-                            strokeWidth: 2,
+                            size: 20,
                           ),
-                        )
-                      : const Icon(
-                          Icons.send_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
                 ),
               );
             },
@@ -353,80 +369,82 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showPhilosopherSelection(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withAlpha(26),
-              width: 1,
+      builder:
+          (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1A1A1A),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withAlpha(26), width: 1),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Select a Philosopher',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: 400,
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: Philosopher.philosophers.length,
+                      itemBuilder: (context, index) {
+                        final philosopher = Philosopher.philosophers[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(13),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withAlpha(26),
+                              width: 1,
+                            ),
+                          ),
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              radius: 24,
+                              backgroundImage: AssetImage(
+                                philosopher.imagePath,
+                              ),
+                            ),
+                            title: Text(
+                              philosopher.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            subtitle: Text(
+                              philosopher.description,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w300,
+                              ),
+                            ),
+                            onTap: () {
+                              context.read<ChatProvider>().selectPhilosopher(
+                                philosopher,
+                              );
+                              Navigator.pop(context);
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Select a Philosopher',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 1,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 400,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: Philosopher.philosophers.length,
-                  itemBuilder: (context, index) {
-                    final philosopher = Philosopher.philosophers[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(13),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withAlpha(26),
-                          width: 1,
-                        ),
-                      ),
-                      child: ListTile(
-                        leading: CircleAvatar(
-                          radius: 24,
-                          backgroundImage: AssetImage(philosopher.imagePath),
-                        ),
-                        title: Text(
-                          philosopher.name,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        subtitle: Text(
-                          philosopher.description,
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                        onTap: () {
-                          context.read<ChatProvider>().selectPhilosopher(philosopher);
-                          Navigator.pop(context);
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -434,10 +452,7 @@ class _ChatScreenState extends State<ChatScreen> {
 class AnimatedResponse extends StatefulWidget {
   final String text;
 
-  const AnimatedResponse({
-    super.key,
-    required this.text,
-  });
+  const AnimatedResponse({super.key, required this.text});
 
   @override
   State<AnimatedResponse> createState() => _AnimatedResponseState();
@@ -465,10 +480,7 @@ class _AnimatedResponseState extends State<AnimatedResponse>
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.2),
       end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward();
   }
@@ -491,10 +503,7 @@ class _AnimatedResponseState extends State<AnimatedResponse>
           decoration: BoxDecoration(
             color: Colors.black.withAlpha(179),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withAlpha(26),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withAlpha(26), width: 1),
           ),
           child: MarkdownBody(
             data: widget.text,
@@ -520,4 +529,4 @@ class _AnimatedResponseState extends State<AnimatedResponse>
       ),
     );
   }
-} 
+}
