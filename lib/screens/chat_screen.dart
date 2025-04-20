@@ -17,11 +17,13 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isListening = false;
   String _lastWords = '';
   bool _speechEnabled = false;
+  late TextEditingController _textController;
 
   @override
   void initState() {
     super.initState();
     _initSpeech();
+    _textController = TextEditingController();
   }
 
   void _initSpeech() async {
@@ -74,6 +76,12 @@ class _ChatScreenState extends State<ChatScreen> {
       _speech.stop();
       setState(() => _isListening = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
   }
 
   @override
@@ -244,7 +252,6 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputArea(BuildContext context) {
-    final textController = TextEditingController();
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 24),
       decoration: BoxDecoration(
@@ -291,7 +298,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: TextField(
-                controller: textController,
+                controller: _textController,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -313,7 +320,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 onSubmitted: (text) {
                   if (text.trim().isNotEmpty) {
                     context.read<ChatProvider>().sendMessage(text);
-                    textController.clear();
+                    _textController.clear();
                   }
                 },
               ),
@@ -336,10 +343,10 @@ class _ChatScreenState extends State<ChatScreen> {
                       provider.isLoading
                           ? null
                           : () {
-                            final text = textController.text;
+                            final text = _textController.text;
                             if (text.trim().isNotEmpty) {
                               provider.sendMessage(text);
-                              textController.clear();
+                              _textController.clear();
                             }
                           },
                   icon:

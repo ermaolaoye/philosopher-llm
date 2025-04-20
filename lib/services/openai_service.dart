@@ -35,32 +35,28 @@ class OpenAIService {
     String userMessage,
     List<Message> chatHistory,
   ) async* {
-    if (ApiConfig.apiKey == null) {
-      throw Exception('OpenAI API key not set');
-    }
-
     final messages = [
-      Message(role: MessageRole.system, content: _philosopher.systemPrompt),
+      {"role": "system", "content": _philosopher.systemPrompt},
       ...chatHistory.map((msg) => msg.toJson()),
-      Message(role: MessageRole.user, content: userMessage).toJson(),
+      {"role": "user", "content": userMessage},
     ];
 
     final url = '${ApiConfig.baseUrl}${ApiConfig.chatEndpoint}';
     print('Attempting to connect to: $url');
 
     try {
-      // Use compute for parsing operations to avoid blocking the main thread
       final request = http.Request('POST', Uri.parse(url));
 
       request.headers.addAll({
         'Content-Type': 'application/json',
-        'Connection': 'keep-alive', // Add Connection header
         'Accept': 'application/json',
-        // Uncomment if you need to use API key
-        // 'Authorization': 'Bearer ${ApiConfig.apiKey}',
       });
 
-      // Ensure request timeout is set appropriately
+      // Add API key to headers if available
+      if (ApiConfig.apiKey != null && ApiConfig.apiKey!.isNotEmpty) {
+        request.headers['Authorization'] = 'Bearer ${ApiConfig.apiKey}';
+      }
+
       final requestBody = {
         'model': ApiConfig.model,
         'messages': messages,
@@ -73,7 +69,6 @@ class OpenAIService {
       print('Request body: ${request.body}');
 
       print('Sending request...');
-      // Use a timeout to prevent hanging requests
       final response = await _client
           .send(request)
           .timeout(
@@ -91,7 +86,7 @@ class OpenAIService {
         final errorBody = await response.stream.transform(utf8.decoder).join();
         print('Error response body: $errorBody');
         throw Exception(
-          'Failed to get response from OpenAI: ${response.statusCode}\nError: $errorBody',
+          'Failed to get response from OpenWebUI API: ${response.statusCode}\nError: $errorBody',
         );
       }
 
@@ -100,16 +95,18 @@ class OpenAIService {
         buffer += chunk;
         print('Received chunk: $chunk');
 
-        final lines = buffer.split('\n\n');
+        final lines = buffer.split('\n');
         buffer = lines.removeLast();
 
         for (final line in lines) {
           if (line.startsWith('data: ')) {
-            final data = line.substring(6);
+            final data = line.substring(6).trim();
             if (data == '[DONE]') {
               print('Stream completed');
               return;
             }
+
+            if (data.isEmpty) continue;
 
             try {
               final json = jsonDecode(data);
