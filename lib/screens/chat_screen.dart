@@ -18,6 +18,7 @@ class _ChatScreenState extends State<ChatScreen> {
   String _lastWords = '';
   bool _speechEnabled = false;
   late TextEditingController _textController;
+  bool _manualSubmission = false;
 
   @override
   void initState() {
@@ -33,10 +34,12 @@ class _ChatScreenState extends State<ChatScreen> {
           if (status == 'notListening') {
             setState(() {
               _isListening = false;
-              if (_lastWords.isNotEmpty) {
+              if (_lastWords.isNotEmpty && !_manualSubmission) {
                 context.read<ChatProvider>().sendMessage(_lastWords);
                 _lastWords = '';
+                _textController.clear();
               }
+              _manualSubmission = false;
             });
           }
         },
@@ -60,6 +63,7 @@ class _ChatScreenState extends State<ChatScreen> {
         onResult: (result) {
           setState(() {
             _lastWords = result.recognizedWords;
+            _textController.text = _lastWords;
           });
         },
         listenOptions: stt.SpeechListenOptions(
@@ -74,7 +78,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void _stopListening() {
     if (_isListening) {
       _speech.stop();
-      setState(() => _isListening = false);
+      setState(() {
+        _isListening = false;
+        _lastWords = '';
+      });
+      _textController.clear();
     }
   }
 
@@ -102,25 +110,27 @@ class _ChatScreenState extends State<ChatScreen> {
               // Background with philosopher image
               Consumer<ChatProvider>(
                 builder: (context, provider, child) {
-                  return Center(
-                    child: Container(
-                      width: 400,
-                      height: 400,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: AssetImage(
-                            provider.selectedPhilosopher.imagePath,
+                  return Positioned.fill(
+                    child: Center(
+                      child: Container(
+                        width: 400,
+                        height: 400,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: AssetImage(
+                              provider.selectedPhilosopher.imagePath,
+                            ),
+                            fit: BoxFit.cover,
                           ),
-                          fit: BoxFit.cover,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withAlpha(128),
+                              blurRadius: 30,
+                              spreadRadius: 10,
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(128),
-                            blurRadius: 30,
-                            spreadRadius: 10,
-                          ),
-                        ],
                       ),
                     ),
                   );
@@ -189,29 +199,6 @@ class _ChatScreenState extends State<ChatScreen> {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (_isListening && _lastWords.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withAlpha(179),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.white.withAlpha(26),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              _lastWords,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                height: 1.6,
-                                letterSpacing: 0.3,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                          ),
                         if (provider.currentAnswer != null)
                           AnimatedResponse(
                             text: provider.currentAnswer!.content,
@@ -319,8 +306,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 minLines: 1,
                 onSubmitted: (text) {
                   if (text.trim().isNotEmpty) {
+                    _manualSubmission = true;
+                    _stopListening();
                     context.read<ChatProvider>().sendMessage(text);
                     _textController.clear();
+                    // Hide keyboard
+                    FocusScope.of(context).unfocus();
                   }
                 },
               ),
@@ -345,8 +336,12 @@ class _ChatScreenState extends State<ChatScreen> {
                           : () {
                             final text = _textController.text;
                             if (text.trim().isNotEmpty) {
+                              _manualSubmission = true;
+                              _stopListening();
                               provider.sendMessage(text);
                               _textController.clear();
+                              // Hide keyboard
+                              FocusScope.of(context).unfocus();
                             }
                           },
                   icon:
@@ -376,82 +371,87 @@ class _ChatScreenState extends State<ChatScreen> {
   void _showPhilosopherSelection(BuildContext context) {
     showDialog(
       context: context,
-      builder:
-          (context) => Dialog(
-            backgroundColor: Colors.transparent,
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: Colors.white.withAlpha(26), width: 1),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Select a Philosopher',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: 400,
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: Philosopher.philosophers.length,
-                      itemBuilder: (context, index) {
-                        final philosopher = Philosopher.philosophers[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withAlpha(13),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(26),
-                              width: 1,
-                            ),
-                          ),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              radius: 24,
-                              backgroundImage: AssetImage(
-                                philosopher.imagePath,
-                              ),
-                            ),
-                            title: Text(
-                              philosopher.name,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                            subtitle: Text(
-                              philosopher.description,
-                              style: const TextStyle(
-                                color: Colors.white70,
-                                fontWeight: FontWeight.w300,
-                              ),
-                            ),
-                            onTap: () {
-                              context.read<ChatProvider>().selectPhilosopher(
-                                philosopher,
-                              );
-                              Navigator.pop(context);
-                            },
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.8,
+            maxWidth: 400,
           ),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1A),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withAlpha(26), width: 1),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Select a Philosopher',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: Philosopher.philosophers.length,
+                    itemBuilder: (context, index) {
+                      final philosopher = Philosopher.philosophers[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(13),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withAlpha(26),
+                            width: 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            radius: 24,
+                            backgroundImage: AssetImage(
+                              philosopher.imagePath,
+                            ),
+                          ),
+                          title: Text(
+                            philosopher.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                          subtitle: Text(
+                            philosopher.description,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w300,
+                            ),
+                          ),
+                          onTap: () {
+                            context.read<ChatProvider>().selectPhilosopher(
+                              philosopher,
+                            );
+                            Navigator.pop(context);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -470,6 +470,7 @@ class _AnimatedResponseState extends State<AnimatedResponse>
   late final AnimationController _controller;
   late final Animation<double> _fadeAnimation;
   late final Animation<Offset> _slideAnimation;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -493,8 +494,26 @@ class _AnimatedResponseState extends State<AnimatedResponse>
   }
 
   @override
+  void didUpdateWidget(AnimatedResponse oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text) {
+      // Scroll to bottom when new content is added
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -506,29 +525,35 @@ class _AnimatedResponseState extends State<AnimatedResponse>
         opacity: _fadeAnimation,
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 24),
-          padding: const EdgeInsets.all(20),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
           decoration: BoxDecoration(
             color: Colors.black.withAlpha(179),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withAlpha(26), width: 1),
           ),
-          child: MarkdownBody(
-            data: widget.text,
-            styleSheet: MarkdownStyleSheet(
-              p: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                height: 1.6,
-                letterSpacing: 0.3,
-                fontWeight: FontWeight.w300,
-              ),
-              strong: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w500,
-              ),
-              em: const TextStyle(
-                color: Colors.white,
-                fontStyle: FontStyle.italic,
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.all(20),
+            child: MarkdownBody(
+              data: widget.text,
+              styleSheet: MarkdownStyleSheet(
+                p: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  height: 1.6,
+                  letterSpacing: 0.3,
+                  fontWeight: FontWeight.w300,
+                ),
+                strong: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+                em: const TextStyle(
+                  color: Colors.white,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
             ),
           ),
