@@ -72,6 +72,29 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/fonts/
+
+  fonts:
+    - family: HONORSansCN
+      fonts:
+        - asset: assets/fonts/HONORSansCN-Thin.ttf
+          weight: 100
+        - asset: assets/fonts/HONORSansCN-ExtraLight.ttf
+          weight: 200
+        - asset: assets/fonts/HONORSansCN-Light.ttf
+          weight: 300
+        - asset: assets/fonts/HONORSansCN-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/HONORSansCN-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/HONORSansCN-DemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/HONORSansCN-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/HONORSansCN-ExtraBold.ttf
+          weight: 800
+        - asset: assets/fonts/HONORSansCN-Heavy.ttf
+          weight: 900
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

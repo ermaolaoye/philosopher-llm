@@ -175,7 +175,8 @@ class _ChatScreenState extends State<ChatScreen> {
             children: [
               // Top bar
               Container(
-                padding: const EdgeInsets.fromLTRB(40, 20, 40, 20),
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                height: 100,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -186,10 +187,9 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const SizedBox(width: 100),
                     Consumer<ChatProvider>(
                       builder: (context, provider, child) {
                         return Text(
@@ -198,12 +198,36 @@ class _ChatScreenState extends State<ChatScreen> {
                             color: Colors.black87,
                             fontSize: 40,
                             fontWeight: FontWeight.w500,
+                            fontFamily: 'HONORSansCN',
                           ),
                         );
                       },
                     ),
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.refresh, color: Colors.grey, size: 48),
+                            onPressed: () {
+                              context.read<ChatProvider>().resetChat();
+                              _textController.clear();
+                            },
+                            tooltip: 'Reset Chat',
+                            padding: const EdgeInsets.all(20),
+                            constraints: const BoxConstraints(minWidth: 88, minHeight: 88),
+                            style: IconButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 20),
                         Container(
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
@@ -301,10 +325,12 @@ class _ChatScreenState extends State<ChatScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
                         child: TextField(
                           controller: _textController,
+                          textInputAction: TextInputAction.send,
                           style: const TextStyle(
                             color: Colors.black87,
                             fontSize: 28,
                             fontWeight: FontWeight.w400,
+                            fontFamily: 'HONORSansCN',
                           ),
                           decoration: InputDecoration(
                             hintText: 'Type a message...',
@@ -312,6 +338,7 @@ class _ChatScreenState extends State<ChatScreen> {
                               color: Colors.grey,
                               fontSize: 28,
                               fontWeight: FontWeight.w400,
+                              fontFamily: 'HONORSansCN',
                             ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
@@ -391,8 +418,8 @@ class _ChatScreenState extends State<ChatScreen> {
         backgroundColor: Colors.transparent,
         child: Container(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.7,
-            maxWidth: 400,
+            maxHeight: MediaQuery.of(context).size.height * 0.9,
+            maxWidth: MediaQuery.of(context).size.width * 0.39,
           ),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -428,12 +455,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       'Select a Philosopher',
                       style: TextStyle(
                         color: Colors.black87,
-                        fontSize: 16,
+                        fontSize: 24,
                         fontWeight: FontWeight.w500,
+                        fontFamily: 'HONORSansCN',
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey, size: 20),
+                      icon: const Icon(Icons.close, color: Colors.grey, size: 32),
                       onPressed: () => Navigator.pop(context),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -470,17 +498,17 @@ class _ChatScreenState extends State<ChatScreen> {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 72,
-                                  height: 72,
+                                  width: 120,
+                                  height: 120,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(24),
                                     image: DecorationImage(
                                       image: AssetImage(philosopher.imagePath),
                                       fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 24),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -489,17 +517,19 @@ class _ChatScreenState extends State<ChatScreen> {
                                         philosopher.name,
                                         style: const TextStyle(
                                           color: Colors.black87,
-                                          fontSize: 16,
+                                          fontSize: 24,
                                           fontWeight: FontWeight.w500,
+                                          fontFamily: 'HONORSansCN',
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 8),
                                       Text(
                                         philosopher.description,
                                         style: TextStyle(
                                           color: Colors.grey[600],
-                                          fontSize: 14,
+                                          fontSize: 18,
                                           fontWeight: FontWeight.w400,
+                                          fontFamily: 'HONORSansCN',
                                         ),
                                         maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
@@ -510,7 +540,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 Icon(
                                   Icons.chevron_right,
                                   color: Colors.grey[400],
-                                  size: 20,
+                                  size: 32,
                                 ),
                               ],
                             ),
@@ -618,14 +648,17 @@ class _AnimatedResponseState extends State<AnimatedResponse>
                   height: 1.6,
                   letterSpacing: 0.3,
                   fontWeight: FontWeight.w300,
+                  fontFamily: 'HONORSansCN',
                 ),
                 strong: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w500,
+                  fontFamily: 'HONORSansCN',
                 ),
                 em: const TextStyle(
                   color: Colors.white,
                   fontStyle: FontStyle.italic,
+                  fontFamily: 'HONORSansCN',
                 ),
               ),
             ),
@@ -702,14 +735,17 @@ class ChatMessage extends StatelessWidget {
                         height: 1.4,
                         letterSpacing: 0.2,
                         fontWeight: FontWeight.w400,
+                        fontFamily: 'HONORSansCN',
                       ),
                       strong: const TextStyle(
                         color: Colors.black87,
                         fontWeight: FontWeight.w600,
+                        fontFamily: 'HONORSansCN',
                       ),
                       em: const TextStyle(
                         color: Colors.black87,
                         fontStyle: FontStyle.italic,
+                        fontFamily: 'HONORSansCN',
                       ),
                     ),
                   ),
